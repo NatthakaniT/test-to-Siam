@@ -6,6 +6,8 @@
 |---|---|
 | 🌐 เว็บ (Vercel) | https://test-to-siam.vercel.app |
 | 🔌 API (Render) | https://test-to-siam.onrender.com/api/health |
+| 🗄️ Database script | [`database/schema.sql`](database/schema.sql) |
+| 💻 Source code | [`frontend/`](frontend) (Next.js) · [`backend/`](backend) (Laravel) |
 
 > ⚠️ API อยู่บน Render แพ็กเกจฟรี เครื่องจะหลับเมื่อไม่มีคนใช้งาน **การเปิดครั้งแรกอาจต้องรอประมาณ 1 นาที** (หน้าเว็บจะแสดง "กำลังโหลด…" ระหว่างรอ)
 
@@ -35,12 +37,15 @@
 ```
 frontend/   Next.js: หน้าเว็บ 5 หน้า เรียก API ผ่าน src/lib/api.ts
 backend/    Laravel: REST API, migrations, tests, Dockerfile
+database/   schema.sql: script สร้างตาราง (PostgreSQL)
 docs/       ภาพหน้าจอ
 ```
 
 ## การออกแบบ
 
 ### ตาราง
+
+SQL สำหรับสร้างตาราง + ข้อมูลตัวอย่าง: [`database/schema.sql`](database/schema.sql) (ตอน deploy จริงตารางถูกสร้างด้วย Laravel migrations ใน [`backend/database/migrations/`](backend/database/migrations))
 
 | ตาราง | คอลัมน์ |
 |---|---|
