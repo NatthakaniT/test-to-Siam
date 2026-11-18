@@ -88,6 +88,23 @@ class PriceSnapshotTest extends TestCase
             ->assertJsonValidationErrors('price');
     }
 
+    public function test_validation_messages_are_in_thai(): void
+    {
+        $pen = Product::create(['name' => 'ปากกา', 'price' => 100]);
+
+        $this->postJson('/api/orders', [
+            'items' => [['product_id' => $pen->id, 'quantity' => 1], ['product_id' => $pen->id, 'quantity' => 0]],
+        ])
+            ->assertJsonValidationErrors([
+                'customer_name' => 'กรุณากรอกชื่อลูกค้า',
+                'items.0.product_id' => 'เลือกสินค้าซ้ำกันในคำสั่งซื้อเดียวไม่ได้',
+                'items.1.quantity' => 'จำนวน ต้องไม่น้อยกว่า 1',
+            ]);
+
+        $this->postJson('/api/products', ['name' => '', 'price' => -1])
+            ->assertJsonValidationErrors(['name' => 'กรุณากรอกชื่อสินค้า', 'price' => 'ราคา ต้องไม่น้อยกว่า 0']);
+    }
+
     public function test_order_can_be_cancelled_only_once(): void
     {
         $pen = Product::create(['name' => 'ปากกา', 'price' => 100]);
