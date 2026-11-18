@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Product } from "@/lib/types";
 import { ErrorText, Loading } from "@/components/Status";
+import { IconArrowLeft } from "@/components/Icons";
 
 /** Used for both create (no id) and edit (with id). */
 export default function ProductForm({ id }: { id?: string }) {
@@ -42,45 +44,59 @@ export default function ProductForm({ id }: { id?: string }) {
     }
   }
 
-  if (loading) return <Loading />;
-
   return (
-    <form onSubmit={submit} className="card space-y-4">
-      <h1 className="text-2xl font-bold">{id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"}</h1>
-      {id && (
-        <p className="text-sm text-gray-500">
-          เปลี่ยนราคาตรงนี้ได้ คำสั่งซื้อเก่าจะยังใช้ราคาเดิมตอนที่สั่ง
-        </p>
+    <div className="mx-auto max-w-lg">
+      <Link href="/products" className="btn-ghost -ml-4 mb-2">
+        <IconArrowLeft />
+        กลับไปหน้าสินค้า
+      </Link>
+
+      {loading ? (
+        <Loading />
+      ) : (
+        <form onSubmit={submit} className="panel space-y-5 p-5 md:p-6">
+          <h1 className="text-2xl font-bold">{id ? "แก้ไขสินค้า" : "เพิ่มสินค้า"}</h1>
+          {error && <ErrorText message={error} />}
+
+          <div>
+            <label htmlFor="name" className="mb-1.5 block font-medium">ชื่อสินค้า</label>
+            <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required maxLength={255} />
+          </div>
+
+          <div>
+            <label htmlFor="price" className="mb-1.5 block font-medium">ราคาต่อชิ้น</label>
+            <div className="relative">
+              <input
+                id="price"
+                className="input num pr-14"
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                aria-describedby={id ? "price-help" : undefined}
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-muted">บาท</span>
+            </div>
+            {id && (
+              <p id="price-help" className="mt-2 text-sm text-muted">
+                ราคาใหม่จะใช้กับคำสั่งซื้อหลังจากนี้ คำสั่งซื้อที่สั่งไปแล้วยังคิดราคาเดิม
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+            <button type="button" className="btn-outline" onClick={() => router.back()}>
+              ยกเลิก
+            </button>
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? "กำลังบันทึก…" : id ? "บันทึกการแก้ไข" : "เพิ่มสินค้า"}
+            </button>
+          </div>
+        </form>
       )}
-      {error && <ErrorText message={error} />}
-
-      <label className="block">
-        <span className="mb-1 block font-medium">ชื่อสินค้า</span>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} required maxLength={255} />
-      </label>
-
-      <label className="block">
-        <span className="mb-1 block font-medium">ราคา (บาท)</span>
-        <input
-          className="input"
-          type="number"
-          inputMode="decimal"
-          min="0"
-          step="0.01"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          required
-        />
-      </label>
-
-      <div className="flex gap-2">
-        <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? "กำลังบันทึก…" : "บันทึก"}
-        </button>
-        <button type="button" className="btn-secondary" onClick={() => router.back()}>
-          ยกเลิก
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }

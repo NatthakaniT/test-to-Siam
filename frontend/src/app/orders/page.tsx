@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { baht, type Order } from "@/lib/types";
-import { ErrorText, Loading } from "@/components/Status";
+import { baht, thaiDate, type Order } from "@/lib/types";
+import { ErrorText, Loading, PageTitle } from "@/components/Status";
 import StatusBadge from "@/components/StatusBadge";
+import { IconPlus } from "@/components/Icons";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[] | null>(null);
@@ -17,30 +18,53 @@ export default function OrdersPage() {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">คำสั่งซื้อ</h1>
-        <Link href="/orders/new" className="btn-primary">+ สั่งซื้อ</Link>
-      </div>
+      <PageTitle title="คำสั่งซื้อ" sub={orders ? `ทั้งหมด ${orders.length} ใบ` : undefined}>
+        <Link href="/orders/new" className="btn-primary">
+          <IconPlus />
+          สร้างคำสั่งซื้อ
+        </Link>
+      </PageTitle>
 
       {error && <ErrorText message={error} />}
       {!orders && !error && <Loading />}
-      {orders?.length === 0 && <p className="text-gray-500">ยังไม่มีคำสั่งซื้อ</p>}
 
-      <ul className="space-y-2">
-        {orders?.map((o) => (
-          <li key={o.id}>
-            <Link href={`/orders/${o.id}`} className="card flex flex-wrap items-center gap-x-3 gap-y-1 hover:border-blue-400">
-              <span className="font-medium">#{o.id}</span>
-              <span className="mr-auto">{o.customer_name}</span>
-              <StatusBadge status={o.status} />
-              <span className="w-full text-sm text-gray-500 sm:w-auto">
-                {o.items.length} รายการ · {new Date(o.created_at).toLocaleString("th-TH")}
-              </span>
-              <span className="font-bold">{baht(o.total)}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {orders?.length === 0 && (
+        <div className="panel p-8 text-center">
+          <p className="text-muted">ยังไม่มีคำสั่งซื้อ</p>
+          <Link href="/orders/new" className="btn-primary mt-4">
+            <IconPlus />
+            สร้างคำสั่งซื้อแรก
+          </Link>
+        </div>
+      )}
+
+      {!!orders?.length && (
+        <ul className="panel divide-y divide-line overflow-hidden">
+          {orders.map((o) => (
+            <li key={o.id}>
+              <Link
+                href={`/orders/${o.id}`}
+                className="flex items-center gap-4 px-5 py-4 transition-colors duration-150 hover:bg-wash"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">
+                    <span className="num text-muted">#{o.id}</span> {o.customer_name}
+                  </p>
+                  <p className="mt-0.5 text-sm text-muted">
+                    {thaiDate(o.created_at)}, {o.items.length} รายการ
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`num font-semibold ${o.status === "cancelled" ? "text-muted line-through" : ""}`}>
+                    {baht(o.total)}
+                  </span>
+                  <StatusBadge status={o.status} />
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

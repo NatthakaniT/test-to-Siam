@@ -1,30 +1,40 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { Noto_Sans_Thai } from "next/font/google";
+import { IBM_Plex_Sans_Thai } from "next/font/google";
+import { DesktopNav, MobileNav } from "@/components/Nav";
+import { IconReceipt } from "@/components/Icons";
 import "./globals.css";
 
-const font = Noto_Sans_Thai({ variable: "--font-thai", subsets: ["thai", "latin"] });
+const font = IBM_Plex_Sans_Thai({
+  variable: "--font-plex",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
-  title: "ระบบขายสินค้าและคำสั่งซื้อ",
-  description: "จัดการสินค้าและคำสั่งซื้อ",
+  title: "ร้านเครื่องเขียน",
+  description: "จัดการสินค้าและคำสั่งซื้อของร้าน",
 };
+
+export const viewport: Viewport = { themeColor: "#ffffff" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="th">
       <body className={`${font.variable} font-sans antialiased`}>
-        <header className="border-b border-gray-200 bg-white">
-          <nav className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3">
-            <Link href="/products" className="mr-auto text-lg font-bold">
-              ร้านค้า
+        <header className="sticky top-0 z-10 border-b border-line bg-white/95 backdrop-blur">
+          <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
+            <Link href="/products" className="flex items-center gap-2.5 font-semibold">
+              <span className="grid size-9 place-items-center rounded-xl bg-brand text-white">
+                <IconReceipt />
+              </span>
+              ร้านเครื่องเขียน
             </Link>
-            <Link href="/products" className="py-2 hover:text-blue-600">สินค้า</Link>
-            <Link href="/orders" className="py-2 hover:text-blue-600">คำสั่งซื้อ</Link>
-            <Link href="/orders/new" className="py-2 font-medium text-blue-600">+ สั่งซื้อ</Link>
-          </nav>
+            <DesktopNav />
+          </div>
         </header>
-        <main className="mx-auto max-w-3xl p-4">{children}</main>
+        <main className="mx-auto max-w-4xl px-4 pt-6 pb-28 md:pb-12">{children}</main>
+        <MobileNav />
       </body>
     </html>
   );

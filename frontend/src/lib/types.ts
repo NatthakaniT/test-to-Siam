@@ -20,5 +20,8 @@ export type Order = {
   items: OrderItem[];
 };
 
+export const thaiDate = (iso: string) =>
+  new Date(iso).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" });
+
 export const baht = (v: string | number) =>
   Number(v).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " ฿";
