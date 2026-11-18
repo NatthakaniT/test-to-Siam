@@ -41,6 +41,61 @@ database/   schema.sql: script สร้างตาราง (PostgreSQL)
 docs/       ภาพหน้าจอ
 ```
 
+## Workflow
+
+### ภาพรวมระบบ
+
+หน้าเว็บไม่ได้ต่อฐานข้อมูลโดยตรง ทุกคำขอต้องผ่าน API ซึ่งเป็นที่เดียวที่อ่านหรือเขียนฐานข้อมูลได้
+
+```mermaid
+flowchart LR
+    U["ผู้ใช้<br/>มือถือ / คอม"] --> V["Vercel<br/>หน้าเว็บ Next.js"]
+    V -->|"เรียก API (JSON)"| R["Render<br/>API Laravel"]
+    R -->|"อ่าน / เขียน"| S[("Supabase<br/>PostgreSQL")]
+    G["GitHub<br/>source code"] -.->|"push แล้ว deploy เอง"| V
+    G -.->|"push แล้ว deploy เอง"| R
+```
+
+### ขั้นตอนตอนสร้างคำสั่งซื้อ
+
+```mermaid
+sequenceDiagram
+    actor U as ผู้ใช้
+    participant FE as หน้าเว็บ (Next.js)
+    participant API as API (Laravel)
+    participant DB as ฐานข้อมูล
+
+    U->>FE: เลือกสินค้า + จำนวน แล้วกดยืนยัน
+    FE->>API: POST /api/orders<br/>ชื่อลูกค้า, product_id, quantity (ไม่ส่งราคา)
+    API->>API: ตรวจข้อมูล (validation)
+    alt ข้อมูลไม่ถูกต้อง
+        API-->>FE: 422 + ข้อความภาษาไทย
+    else ข้อมูลถูกต้อง
+        API->>DB: เริ่ม transaction
+        API->>DB: อ่านราคาปัจจุบันของสินค้า
+        API->>DB: บันทึก orders
+        API->>DB: บันทึก order_items พร้อม snapshot ชื่อ + ราคา
+        API->>DB: commit (ถ้าพลาดตรงไหน rollback ทั้งใบ)
+        API-->>FE: 201 + ใบเสร็จ
+        FE-->>U: แสดงรายละเอียดคำสั่งซื้อ
+    end
+```
+
+ภายหลังถ้าแก้ราคาสินค้า คำสั่งซื้อเดิมยังอ่านราคาจาก `order_items` ที่ snapshot ไว้ ยอดรวมจึงไม่เปลี่ยน
+
+### ลำดับการพัฒนา
+
+| ขั้น | ทำอะไร | ส่วนที่เกี่ยวข้อง |
+|---|---|---|
+| 1. วางแผน | ตัดสินใจ stack, หน้าเว็บ, ที่ deploy | — |
+| 2. โครงเปล่า + deploy | Next.js และ Laravel เปล่า ขึ้น Vercel, Render, Supabase ตั้งแต่ต้น เพื่อเจอปัญหา deploy เร็ว | ทั้งหมด |
+| 3. Backend + Database | migrations, models, controllers, validation, snapshot ราคา, tests | `backend/` |
+| 4. Frontend | หน้าเว็บ 5 หน้า ใช้บนมือถือได้ | `frontend/` |
+| 5. เอกสาร | README, ภาพหน้าจอ, `database/schema.sql` | `docs/`, `database/` |
+| 6. ขัดเกลา | ข้อความแจ้งเตือนภาษาไทย, ปรับดีไซน์ | ทั้งหมด |
+
+ทุกครั้งที่แก้โค้ด: แก้และทดสอบบนเครื่อง (`php artisan test`) → commit → push ขึ้น `main` → Vercel และ Render deploy ให้อัตโนมัติ
+
 ## การออกแบบ
 
 ### ตาราง
